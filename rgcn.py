@@ -3,6 +3,14 @@ import torch
 
 
 class RGCNLayer(nn.Module):
+    """
+    A graph convolution layer.
+
+    Based on "Modeling Relational Data with Graph Convolutional Networks", Schlichtkrull et al 2017. For Wr,
+    we use basis functions decomposition instead of block diagonal decomposition, no dropout for now, and
+    featureless inputs (that is, entities are represented by one-hot vectors and have no extra features attached).
+    """
+
     def __init__(self, T, B, dim_in, dim_out, init="random"):
         """
         T: adjacency tensor (n_relations * n_entities * n_entities)
@@ -48,7 +56,23 @@ class RGCNLayer(nn.Module):
         return H
 
 class RGCN(nn.Module):
+    """
+    A relational-graph convolutional network implementation.
+
+    This is only the encoder part, the decoder is not implemented yet. It can be used
+    in a (semi-)supervised setting for entity classification. Based on "Modeling
+    Relational Data with Graph Convolutional Networks", Schlichtkrull et al 2017.
+    """
     def __init__(self, T, n_classes, hidden_sizes=None, n_basis=10):
+        """
+
+        :param T: adjacency tensor of the corresponding knowledge graph, as outputed
+        by `utils.graph.build_adjacency_tensor`
+        :param n_classes: number of classes (for the entity classification task)
+        :param hidden_sizes: (optional) a list of hidden sizes for each convolution layer
+        :param n_basis: the number of basis functions (named `B` in Schlichtkrull's paper). Can
+        be an int, in which case it is used for each layer, or a list of ints (one per layer).
+        """
         super().__init__()
         Nr, (Ne, _) = len(T), T[0].shape
         self.n_relations = Nr
