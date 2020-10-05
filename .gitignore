@@ -1,3 +1,5 @@
 .ipynb_checkpoints/
 .idea/
 fb15k/Release/
+__pycache__/
+*/__pycache__/
