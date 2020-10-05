@@ -46,3 +46,42 @@ class RGCNLayer(nn.Module):
         # H = torch.stack([torch.sparse.mm(a, hw) for a, hw in zip(self.T, H)])
         H = torch.stack(H).sum(axis=0)
         return H
+
+class RGCN(nn.Module):
+    def __init__(self, T, n_classes, hidden_sizes=None, n_basis=10, embedding_dim=500):
+        super().__init__()
+        Nr, (Ne, _) = len(T), T[0].shape
+        self.n_relations = Nr
+        self.n_entities = Ne
+        self.n_classes = n_classes
+        self.input_size = self.n_entities
+        self.output_size = self.n_classes
+        self.T = T
+
+        self.convolutions = self.build_convolutions(hidden_sizes, n_basis)
+        self.softmax = nn.Softmax(0)
+
+    def build_convolutions(self, hidden_sizes, n_basis, init="random"):
+        if hidden_sizes is None:
+            hidden_sizes = [32]
+        hidden_sizes = [self.input_size, *hidden_sizes]
+        if not isinstance(n_basis, int):
+            assert len(n_basis) == len(hidden_sizes), "You must provide a \
+              number of basis functions (`n_basis`) for each layer"
+        else:
+            n_basis = [n_basis] * len(hidden_sizes)
+        hidden_sizes.append(self.output_size)
+        layers = []
+        for input_size, hidden_size, B in zip(hidden_sizes,
+                                              hidden_sizes[1:],
+                                              n_basis
+                                              ):
+            conv = RGCNLayer(self.T, B, input_size, hidden_size, init=init)
+            layers.append(conv)
+        return nn.ModuleList(layers)
+
+    def forward(self, x):
+        for conv in self.convolutions:
+            x = conv(x)
+        x = self.softmax(x)
+        return x
