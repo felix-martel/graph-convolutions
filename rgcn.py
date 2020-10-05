@@ -48,7 +48,7 @@ class RGCNLayer(nn.Module):
         return H
 
 class RGCN(nn.Module):
-    def __init__(self, T, n_classes, hidden_sizes=None, n_basis=10, embedding_dim=500):
+    def __init__(self, T, n_classes, hidden_sizes=None, n_basis=10):
         super().__init__()
         Nr, (Ne, _) = len(T), T[0].shape
         self.n_relations = Nr
