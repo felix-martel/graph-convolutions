@@ -4,6 +4,19 @@ from fb15k import get_classes
 from scipy import sparse
 
 def build_adjacency_tensor(triples):
+    """
+    Build an adjacency tensor from a list of triples
+
+    `triples` is a list of string tuples `(head, relation, tail)`. Let R be the number of distinct relations,
+    and E the number of entities (heads and tails). Then, the adjacency tensor is a list [T1, T2, ..., TR], with
+    each Ti a E x E normalized tensor:
+    Ti = Di^-1 * Ai
+    With Aijk = 1 if (e_k, r_i, e_j) is in `triples`, and 0 otherwise
+    And Di a diagonal matrix containing the in-degree of each entity
+
+    The function also return the class of each entity, and mappings from entities to theirs ids and from
+    relations to their ids.
+    """
     hs, rs, ts = zip(*triples)
     entities = {e: i for i, e in enumerate(set(hs) | set(ts))}
     rev_entities = {i: e for e, i in entities.items()}
