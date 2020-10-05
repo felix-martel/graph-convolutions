@@ -1,0 +1,1 @@
+from .download import FB15K_DIRNAME, FB15K_URL, load
