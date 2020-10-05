@@ -7,6 +7,7 @@ unzip FB15K-237.2.zip
 """
 import io
 import os
+from collections import defaultdict, Counter
 
 import requests
 
@@ -24,6 +25,20 @@ def download(url=FB15K_URL, to=DIRNAME):
     raw = io.BytesIO(r.content)
     with ZipFile(raw) as zfile:
         zfile.extractall(to)
+
+def get_classes(triples):
+    """
+    Heuristic for guessing entity classes in the FB15K dataset
+
+    :param triples: List[str, str, str] a list of triples
+    :return: Dict[str, str] a mapping from entities to classes
+    """
+    rph = defaultdict(Counter)
+    for h, r, t in triples:
+        rph[h][r.split("/")[1]] += 1
+    classes = {h: rel.most_common(1)[0][0] if rel else "unknown" for h, rel in rph.items()}
+    return classes
+
 
 def load_one(split, dirname=DIRNAME):
     if split not in SPLITS:
